@@ -4,9 +4,10 @@ import br.rafaeros.smp.modules.order.model.Order;
 
 public record OrderSummaryDTO(
         Long id,
-        String code
+        String code,
+        String productCode
     ) {
     public static OrderSummaryDTO fromEntity(Order order) {
-        return new OrderSummaryDTO(order.getId(), order.getCode());
+        return new OrderSummaryDTO(order.getId(), order.getCode(), order.getProduct().getCode());
     }
 }

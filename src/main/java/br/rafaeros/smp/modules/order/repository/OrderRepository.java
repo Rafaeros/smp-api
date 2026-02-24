@@ -43,9 +43,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         @Query("""
                                 SELECT new br.rafaeros.smp.modules.order.controller.dto.OrderSummaryDTO(
                                         o.id,
-                                        o.code
+                                        o.code,
+                                        p.code
                                 )
                                 FROM Order o
+                                LEFT JOIN o.product p
                                 WHERE (:search IS NULL OR LOWER(CAST(o.code AS string)) LIKE LOWER(CAST(:search AS string)))
                         """)
         Page<OrderSummaryDTO> findSummary(Pageable pageable, @Param("search") String search);

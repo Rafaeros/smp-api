@@ -33,7 +33,8 @@ public record LogResponseDTO(
         if (log.getOrder() != null) {
             orderDto = new OrderSummaryDTO(
                 log.getOrder().getId(), 
-                log.getOrder().getCode()
+                log.getOrder().getCode(),
+                log.getOrder().getProduct().getCode()
             );
         }
 
