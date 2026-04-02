@@ -20,10 +20,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.rafaeros.smp.core.dto.ApiResponse;
+import br.rafaeros.smp.modules.device.service.DeviceService;
 import br.rafaeros.smp.modules.order.controller.dto.CreateOrderDTO;
 import br.rafaeros.smp.modules.order.controller.dto.OrderResponseDTO;
 import br.rafaeros.smp.modules.order.controller.dto.OrderSummaryDTO;
 import br.rafaeros.smp.modules.order.controller.dto.UpdateOrderDTO;
+import br.rafaeros.smp.modules.order.model.Order;
 import br.rafaeros.smp.modules.order.scraper.ErpSearchFilter;
 import br.rafaeros.smp.modules.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class OrderController {
 
     private final OrderService orderService;
+    private final DeviceService deviceService;
 
     @PostMapping("/sync")
     public ResponseEntity<ApiResponse<List<OrderResponseDTO>>> syncOrders(ErpSearchFilter filter,
@@ -41,6 +44,18 @@ public class OrderController {
         System.out.println("Filtro recebiodo: " + filter);
         return ResponseEntity
                 .ok(ApiResponse.success("Ordens sincronizadas com sucesso!", orderService.syncFromErp(filter, force)));
+    }
+
+    @GetMapping("/device/{mac}/current")
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> getCurrentOrderByMac(@PathVariable String mac) {
+        Order order = deviceService.getCurrentOrderEntityByMac(mac);
+        
+        if (order != null) {
+            OrderResponseDTO dto = OrderResponseDTO.fromEntity(order);
+            return ResponseEntity.ok(ApiResponse.success("Ordem encontrada.", dto));
+        } else {
+            return ResponseEntity.ok(ApiResponse.success("Nenhuma ordem ativa para este dispositivo.", null));
+        }
     }
 
     @PostMapping

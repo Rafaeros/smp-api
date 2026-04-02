@@ -55,6 +55,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/logs/device").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/devices/*/status").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/devices/*/ping").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/orders/device/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

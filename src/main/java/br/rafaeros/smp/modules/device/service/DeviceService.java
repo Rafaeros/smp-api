@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -115,6 +116,21 @@ public class DeviceService {
     }
 
     @Transactional
+    @Scheduled(fixedRate = 30000) 
+    public void checkAndDisconnectOfflineDevices() {
+        Instant offlineThreshold = Instant.now().minusSeconds(45);
+        List<Device> ghostDevices = deviceRepository.findByStatusAndLastSeenBefore(DeviceStatus.ONLINE, offlineThreshold);
+        
+        if (!ghostDevices.isEmpty()) {
+            for (Device device : ghostDevices) {
+                device.setStatus(DeviceStatus.OFFLINE);
+                device.setProcessStatus(ProcessStatus.IDLE);
+            }
+            deviceRepository.saveAll(ghostDevices);
+        }
+    }
+
+    @Transactional
     public DeviceResponseDTO updateByMacAddress(String macAddress, UpdateDeviceDTO dto) {
         Device device = deviceRepository.findByMacAddress(dto.macAddress())
                 .orElseThrow(() -> new ResourceNotFoundException("Dispositivo nao encontrado"));
@@ -127,21 +143,37 @@ public class DeviceService {
 
     @Transactional
     public void updateProcessStatus(String macAddress, ProcessStatus processStatus) {
-        deviceRepository.findByMacAddress(macAddress)
-                .ifPresent(device -> {
-                    device.setProcessStatus(processStatus);
-                    device.setLastSeen(Instant.now());
-                    deviceRepository.save(device);
+        Device device = deviceRepository.findByMacAddress(macAddress)
+                .orElseGet(() -> {
+                    Device newDevice = new Device();
+                    newDevice.setMacAddress(macAddress);
+                    newDevice.setIpAddress("0.0.0.0");
+                    return newDevice;
                 });
+                
+        device.setProcessStatus(processStatus);
+        device.setStatus(DeviceStatus.ONLINE);
+        device.setLastSeen(Instant.now());
+        
+        deviceRepository.save(device);
     }
 
     @Transactional
     public void updateLastSeen(String macAddress) {
-        deviceRepository.findByMacAddress(macAddress)
-                .ifPresent(device -> {
-                    device.setLastSeen(Instant.now());
-                    deviceRepository.save(device);
+        Device device = deviceRepository.findByMacAddress(macAddress)
+                .orElseGet(() -> {
+                    // Se não existir, cria a máquina automaticamente ao receber PING
+                    Device newDevice = new Device();
+                    newDevice.setMacAddress(macAddress);
+                    newDevice.setIpAddress("0.0.0.0"); 
+                    newDevice.setProcessStatus(ProcessStatus.IDLE);
+                    return newDevice;
                 });
+                
+        device.setStatus(DeviceStatus.ONLINE);
+        device.setLastSeen(Instant.now());
+        
+        deviceRepository.save(device);
     }
 
     @Transactional

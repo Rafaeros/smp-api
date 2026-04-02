@@ -1,6 +1,7 @@
 package br.rafaeros.smp.modules.device.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import br.rafaeros.smp.modules.device.controller.dto.CreateDeviceRequestDTO;
 import br.rafaeros.smp.modules.device.controller.dto.DeviceDetailsResponseDTO;
 import br.rafaeros.smp.modules.device.controller.dto.DeviceResponseDTO;
 import br.rafaeros.smp.modules.device.controller.dto.UpdateDeviceDTO;
+import br.rafaeros.smp.modules.device.model.enums.ProcessStatus;
 import br.rafaeros.smp.modules.device.service.DeviceService;
 import br.rafaeros.smp.modules.user.model.User;
 import jakarta.validation.Valid;
@@ -43,6 +45,24 @@ public class DeviceController {
     public ResponseEntity<ApiResponse<DeviceResponseDTO>> createDevice(@RequestBody @Valid CreateDeviceRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Dispositivo criado com sucesso!", deviceService.createDevice(dto)));
+    }
+
+    @PostMapping("/{mac}/status")
+    public ResponseEntity<ApiResponse<Void>> updateDeviceStatus(@PathVariable String mac, @RequestBody Map<String, String> body) {
+        try {
+            ProcessStatus status = ProcessStatus.valueOf(body.get("status"));
+            deviceService.updateProcessStatus(mac, status);
+            deviceService.updateLastSeen(mac);
+            return ResponseEntity.ok(ApiResponse.success("Status atualizado.", null));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/{mac}/ping")
+    public ResponseEntity<ApiResponse<Void>> pingDevice(@PathVariable String mac) {
+        deviceService.updateLastSeen(mac);
+        return ResponseEntity.ok(ApiResponse.success("PONG", null));
     }
 
     @GetMapping

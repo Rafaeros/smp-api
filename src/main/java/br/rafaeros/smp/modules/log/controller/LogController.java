@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.rafaeros.smp.core.dto.ApiResponse;
 import br.rafaeros.smp.modules.log.controller.dto.CreateLogRequestDTO;
+import br.rafaeros.smp.modules.log.controller.dto.DeviceLogPayloadDTO;
 import br.rafaeros.smp.modules.log.controller.dto.IOrderStats;
 import br.rafaeros.smp.modules.log.controller.dto.LogResponseDTO;
 import br.rafaeros.smp.modules.log.controller.dto.ProductStatsDTO;
@@ -34,6 +35,13 @@ public class LogController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<LogResponseDTO>> create(@RequestBody @Valid CreateLogRequestDTO request) {
         return ResponseEntity.ok(ApiResponse.success("Log criado com sucesso.", logService.create(request)));
+    }
+
+    @PostMapping("/device")
+    public ResponseEntity<ApiResponse<Void>> createFromDevice(@RequestBody @Valid DeviceLogPayloadDTO payload) {
+        logService.registerLogFromDevice(payload.mac(), payload);
+        
+        return ResponseEntity.ok(ApiResponse.success("Log salvo pelo dispositivo com sucesso.", null));
     }
 
     @GetMapping
