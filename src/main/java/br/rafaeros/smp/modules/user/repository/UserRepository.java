@@ -25,6 +25,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUsername(String username);
 
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.sector s LEFT JOIN FETCH s.authorities WHERE u.username = :username")
+    Optional<User> findByUsernameWithSector(@Param("username") String username);
+
     Optional<User> findByUsernameIgnoreCase(String username);
 
     boolean existsByUsernameIgnoreCase(String username);

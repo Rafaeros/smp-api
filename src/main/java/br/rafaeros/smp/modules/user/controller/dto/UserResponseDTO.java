@@ -8,15 +8,28 @@ public record UserResponseDTO(
         String lastName,
         String username,
         String email,
-        String role
+        String role,
+        Long sectorId,
+        String sectorName,
+        Long companyId,
+        String companyName
     ) {
     public static UserResponseDTO fromEntity(User user) {
+        Long sectorId = user.getSector() != null ? user.getSector().getId() : null;
+        String sectorName = user.getSector() != null ? user.getSector().getName() : null;
+        Long companyId = user.getSector() != null ? user.getSector().getCompany().getId() : null;
+        String companyName = user.getSector() != null ? user.getSector().getCompany().getName() : null;
+
         return new UserResponseDTO(
                 user.getId(),
                 user.getFirstName(),
                 user.getLastName(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getRole().name());
+                user.getRole() != null ? user.getRole().name() : null,
+                sectorId,
+                sectorName,
+                companyId,
+                companyName);
     }
 }

@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.rafaeros.smp.modules.device.model.enums.DeviceActionType;
 import br.rafaeros.smp.modules.device.model.enums.ProcessStatus;
+import br.rafaeros.smp.modules.device.service.DeviceActionService;
 import br.rafaeros.smp.modules.device.service.DeviceService;
 import br.rafaeros.smp.modules.log.controller.dto.DeviceLogPayloadDTO;
 import br.rafaeros.smp.modules.log.service.LogService;
@@ -31,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 public class TcpServerService {
 
     private final DeviceService deviceService;
+    private final DeviceActionService deviceActionService;
     private final LogService logService;
     private final ObjectMapper objectMapper;
     
@@ -127,6 +130,9 @@ public class TcpServerService {
                     } else {
                         writer.println("ERROR_RATE_LIMIT");
                     }
+                }
+                else if (line.startsWith("ACTION:")) {
+                    processActionTrigger(macAddress, line, writer);
                 }
                 else {
                     log.debug("❓ [TCP] Ignored command from {}: {}", macAddress, line);
@@ -259,6 +265,25 @@ public class TcpServerService {
             writer.println("ERROR_STATUS_INVALID");
         } catch (Exception e) {
             writer.println("ERROR_STATUS_PROCESS");
+        }
+    }
+
+    private void processActionTrigger(String macAddress, String line, PrintWriter writer) {
+        try {
+            String[] parts = line.split(":");
+            if (parts.length < 2 || parts[1].isBlank()) {
+                writer.println("ERROR_ACTION_FORMAT");
+                return;
+            }
+            DeviceActionType actionType = DeviceActionType.valueOf(parts[1].trim().toUpperCase());
+            deviceActionService.triggerActionFromDevice(macAddress, actionType);
+            log.info("🔔 [TCP] Action triggered - Device: {}, Type: {}", macAddress, actionType);
+            writer.println("OK_ACTION");
+        } catch (IllegalArgumentException e) {
+            writer.println("ERROR_ACTION_TYPE_INVALID");
+        } catch (Exception e) {
+            log.error("❌ [TCP] Failed to trigger action for {}: {}", macAddress, e.getMessage());
+            writer.println("ERROR_ACTION_PROCESS");
         }
     }
 

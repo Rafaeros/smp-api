@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import br.rafaeros.smp.core.model.BaseEntity;
 import br.rafaeros.smp.modules.client.model.Client;
+import br.rafaeros.smp.modules.company.model.Company;
 import br.rafaeros.smp.modules.device.model.Device;
 import br.rafaeros.smp.modules.log.model.Log;
 import br.rafaeros.smp.modules.order.model.enums.OrderStatus;
@@ -59,6 +60,10 @@ public class Order extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id", nullable = true)
+    private Company company;
 
     @JsonIgnore
     @OneToMany(mappedBy = "currentOrder", fetch = FetchType.LAZY)

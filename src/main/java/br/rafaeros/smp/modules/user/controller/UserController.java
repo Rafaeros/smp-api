@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.rafaeros.smp.core.dto.ApiResponse;
+import br.rafaeros.smp.modules.company.controller.dto.AssignSectorDTO;
 import br.rafaeros.smp.modules.user.controller.dto.CreateUserRequestDTO;
 import br.rafaeros.smp.modules.user.controller.dto.UpdatePasswordRequestDTO;
 import br.rafaeros.smp.modules.user.controller.dto.UpdateUserRequestDTO;
@@ -70,6 +71,14 @@ public class UserController {
             @RequestBody @Valid UpdatePasswordRequestDTO dto, @AuthenticationPrincipal User user) {
         return ResponseEntity
                 .ok(ApiResponse.success("Senha atualizada com sucesso!", userService.changePassword(id, dto, user)));
+    }
+
+    @PatchMapping("/{id}/sector")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> assignSector(@PathVariable Long id,
+            @RequestBody @Valid AssignSectorDTO dto) {
+        return ResponseEntity.ok(ApiResponse.success("Setor atribuído com sucesso!",
+                userService.assignSector(id, dto.sectorId())));
     }
 
     @DeleteMapping("/{id}")

@@ -23,11 +23,19 @@ public class TokenService {
     public String generateToken(User user) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
-            return JWT.create()
+
+            Long companyId = (user.getSector() != null) ? user.getSector().getCompany().getId() : null;
+            Long sectorId = (user.getSector() != null) ? user.getSector().getId() : null;
+
+            var builder = JWT.create()
                     .withIssuer("smp-api")
                     .withSubject(user.getUsername())
-                    .withExpiresAt(generateExpirationDate())
-                    .sign(algorithm);
+                    .withExpiresAt(generateExpirationDate());
+
+            if (companyId != null) builder = builder.withClaim("companyId", companyId);
+            if (sectorId != null) builder = builder.withClaim("sectorId", sectorId);
+
+            return builder.sign(algorithm);
         } catch (JWTCreationException exception) {
             throw new RuntimeException("Erro ao gerar JWT Token", exception);
         }

@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.rafaeros.smp.core.exception.BusinessException;
 import br.rafaeros.smp.core.exception.ResourceNotFoundException;
+import br.rafaeros.smp.modules.company.model.Sector;
+import br.rafaeros.smp.modules.company.repository.SectorRepository;
 import br.rafaeros.smp.modules.user.controller.dto.CreateUserRequestDTO;
 import br.rafaeros.smp.modules.user.controller.dto.UpdatePasswordRequestDTO;
 import br.rafaeros.smp.modules.user.controller.dto.UpdateUserRequestDTO;
@@ -27,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SectorRepository sectorRepository;
     private final String DEFAULT_PASSWORD = "mudar@123";
 
     @Transactional
@@ -150,6 +153,18 @@ public UserResponseDTO update(Long id, UpdateUserRequestDTO dto, User authentica
             throw new BusinessException("A nova senha deve ser diferente da senha atual");
         }
 
+    }
+
+    @Transactional
+    public UserResponseDTO assignSector(Long userId, Long sectorId) {
+        User user = findByIdInternal(userId);
+        Sector sector = sectorRepository.findById(sectorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Setor não encontrado"));
+        if (!sector.getCompany().isActive()) {
+            throw new BusinessException("A empresa do setor está inativa");
+        }
+        user.setSector(sector);
+        return UserResponseDTO.fromEntity(userRepository.save(user));
     }
 
     private User findByIdInternal(Long id) {

@@ -1,5 +1,6 @@
 package br.rafaeros.smp.modules.user.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -8,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import br.rafaeros.smp.core.model.BaseEntity;
+import br.rafaeros.smp.modules.company.model.Sector;
 import br.rafaeros.smp.modules.user.model.enums.Role;
 import br.rafaeros.smp.modules.userdevice.model.UserDevice;
 import jakarta.persistence.CascadeType;
@@ -15,9 +17,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -49,6 +54,11 @@ public class User extends BaseEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    // nullable: platform ADMIN has no sector
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sector_id", nullable = true)
+    private Sector sector;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserDevice> devices;
 
@@ -62,9 +72,12 @@ public class User extends BaseEntity implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (this.role == null)
-            return List.of(new SimpleGrantedAuthority("ROLE_OPERATOR"));
-        return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + (this.role != null ? this.role.name() : "OPERATOR")));
+        if (this.sector != null && this.sector.getAuthorities() != null) {
+            this.sector.getAuthorities().forEach(a -> authorities.add(new SimpleGrantedAuthority(a.name())));
+        }
+        return authorities;
     }
 
     @Override

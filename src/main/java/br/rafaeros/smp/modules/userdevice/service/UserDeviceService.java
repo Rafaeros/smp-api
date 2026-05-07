@@ -13,6 +13,7 @@ import br.rafaeros.smp.core.exception.ResourceNotFoundException;
 import br.rafaeros.smp.modules.device.model.Device;
 import br.rafaeros.smp.modules.device.model.enums.DeviceStatus;
 import br.rafaeros.smp.modules.device.repository.DeviceRepository;
+import br.rafaeros.smp.modules.device.service.DeviceActionService;
 import br.rafaeros.smp.modules.order.model.Order;
 import br.rafaeros.smp.modules.order.repository.OrderRepository;
 import br.rafaeros.smp.modules.user.model.User;
@@ -33,6 +34,7 @@ public class UserDeviceService {
     private final DeviceRepository deviceRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final DeviceActionService deviceActionService;
 
     @Transactional
     public UserDeviceDetailsDTO bindDeviceToUser(Long userId, DeviceBindingDTO dto) {
@@ -96,7 +98,9 @@ public class UserDeviceService {
                     deviceStatus,
                     pageable);
         }
-        return devicesPage.map(UserDeviceMapResponseDTO::fromEntity);
+        return devicesPage.map(ud ->
+                UserDeviceMapResponseDTO.fromEntity(ud,
+                        deviceActionService.getActiveActions(ud.getDevice().getId())));
     }
 
     @Transactional(readOnly = true)
@@ -108,7 +112,8 @@ public class UserDeviceService {
             devicesList = userDeviceRepository.findAllByUserIdForMap(user.getId());
         }
         return devicesList.stream()
-                .map(UserDeviceMapResponseDTO::fromEntity)
+                .map(ud -> UserDeviceMapResponseDTO.fromEntity(ud,
+                        deviceActionService.getActiveActions(ud.getDevice().getId())))
                 .toList();
     }
 

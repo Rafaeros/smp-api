@@ -3,6 +3,7 @@ package br.rafaeros.smp.modules.device.model;
 import java.time.Instant;
 
 import br.rafaeros.smp.core.model.BaseEntity;
+import br.rafaeros.smp.modules.company.model.Company;
 import br.rafaeros.smp.modules.device.model.enums.DeviceStatus;
 import br.rafaeros.smp.modules.device.model.enums.ProcessStage;
 import br.rafaeros.smp.modules.device.model.enums.ProcessStatus;
@@ -53,4 +54,8 @@ public class Device extends BaseEntity {
     private ProcessStatus processStatus;
 
     private Instant lastSeen;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id", nullable = true)
+    private Company company;
 }

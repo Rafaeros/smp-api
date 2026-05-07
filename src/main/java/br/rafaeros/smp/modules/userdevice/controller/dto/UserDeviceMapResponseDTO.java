@@ -1,7 +1,11 @@
 package br.rafaeros.smp.modules.userdevice.controller.dto;
 
+import java.util.List;
+
+import br.rafaeros.smp.modules.device.controller.dto.ActiveActionDTO;
 import br.rafaeros.smp.modules.device.model.enums.DeviceStatus;
 import br.rafaeros.smp.modules.device.model.enums.ProcessStatus;
+import br.rafaeros.smp.modules.userdevice.model.UserDevice;
 
 public record UserDeviceMapResponseDTO(
         Long id,
@@ -10,9 +14,10 @@ public record UserDeviceMapResponseDTO(
         Double x,
         Double y,
         DeviceStatus status,
-        ProcessStatus process
+        ProcessStatus process,
+        List<ActiveActionDTO> activeActions
     ) {
-    public static UserDeviceMapResponseDTO fromEntity(br.rafaeros.smp.modules.userdevice.model.UserDevice userDevice) {
+    public static UserDeviceMapResponseDTO fromEntity(UserDevice userDevice, List<ActiveActionDTO> activeActions) {
         return new UserDeviceMapResponseDTO(
                 userDevice.getId(),
                 userDevice.getName(),
@@ -20,7 +25,8 @@ public record UserDeviceMapResponseDTO(
                 userDevice.getCoordinateX(),
                 userDevice.getCoordinateY(),
                 userDevice.getDevice().getStatus(),
-                userDevice.getDevice().getProcessStatus()
+                userDevice.getDevice().getProcessStatus(),
+                activeActions
             );
     }
 }

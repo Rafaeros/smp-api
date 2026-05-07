@@ -32,7 +32,7 @@ public class SecurityFilter extends OncePerRequestFilter {
             var login = tokenService.validateToken(token);
             
             if (login != null && !login.isEmpty()) {
-                var userOptional = userRepository.findByUsername(login);
+                var userOptional = userRepository.findByUsernameWithSector(login);
                 if (userOptional.isPresent()) {
                     UserDetails user = userOptional.get();
                     var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
